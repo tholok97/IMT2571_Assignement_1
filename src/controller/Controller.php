@@ -24,6 +24,8 @@ class Controller {
 	public function __construct()  
     {  
 		session_start();
+
+        // try to prepare the model. error page if something went wrong
         try {
             $this->model = new DBModel();
         } catch(PDOException $ex) {
@@ -37,6 +39,7 @@ class Controller {
  */
 	public function invoke()
 	{
+        // TRY: if anything goes wrong -----> error page
         try {
             if (isset($_GET['id']))
             {
@@ -78,8 +81,8 @@ class Controller {
                 $view = new BookListView($books, self::$OP_PARAM_NAME, self::$ADD_OP_NAME);
                 $view->create();
             }
-        } catch (Exception $ex) {
-            $view = new ErrorView();
+        } catch (Exception $ex) {       // SOMETHING WENT TERRIBLY WRONG:
+            $view = new ErrorView();    // show the user an error page
             $view->create();
             exit();
         }

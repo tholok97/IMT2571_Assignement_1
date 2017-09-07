@@ -194,19 +194,22 @@ class UnitTests extends TestCase
 			}
 			else
 			{
-				//TODO: Add tests for unsuccessful cases
+                // generate test book (is invalid on purpose)
 				$book = $this->generateTestBook($i);
                 
+                // test if adding the invalid book properly throws an exception
                 $exception = null;
                 try {
 				    $model->addBook($book);
                 } catch (Exception $ex) {
-                    $ecception = $ex; 
+                    $exception = $ex; 
                 }
 
-		        $dbSizePost = $this->getConnection()->getRowCount('book');
-
+                // verify that exception was thrown
                 $this->assertNotNull($exception, 'exception not thrown with invalid book (addBook)');
+
+                // make sure the database didn't change size after operation
+		        $dbSizePost = $this->getConnection()->getRowCount('book');
                 $this->assertEquals($dbSize, $dbSizePost, 'size of table changed when deletion failed!! (bad)');
 			}
 		}
@@ -249,10 +252,17 @@ class UnitTests extends TestCase
 			else
 			{
 
-                //TODO TODO TODO TODO TODO TODO TODO TODO TODO sjekk om db
-                // ble modifisert
-				//$book = $this->generateTestBook($i);
+                // save real id for cleanup
+                $realId = self::$TEST_CASES[$i]['id'];
 
+                // modify id to be a valid one, and generate test Book (invalid)
+                self::$TEST_CASES[$i]['id'] = self::$TEST_CASES[0]['id'];
+				$book = $this->generateTestBook($i);
+
+                // save state of book before operation
+                $bookPre = $model->getBookById(self::$TEST_CASES[$i]['id']);
+
+                // verify that invalid Book properly throws an exception
                 $exception = null;
                 try {
 				    $model->modifyBook($book);
@@ -260,10 +270,14 @@ class UnitTests extends TestCase
                     $exception = $ex;
                 }
 
+                // assert that exception was thrown
                 $this->assertNotNull($exception, 'exception not thrown with invalid book (modifyBook)');
 
-                // Verify that data was correctly changed
-				//$this->assertBookData($i, $model->getBookById(self::$TEST_CASES[$i]['id']));
+                // assert that book in database was not modified
+				$this->assertBooks($bookPre, $model->getBookById(self::$TEST_CASES[$i]['id']));
+
+                // reset the test case
+                self::$TEST_CASES[$i]['id'] = $realId;
 			}
 		}
 	}
@@ -318,5 +332,19 @@ class UnitTests extends TestCase
 		$this->assertEquals(self::$TEST_CASES[$caseIdx]['author'], $book->author, "Unexpected book author");
 		$this->assertEquals(self::$TEST_CASES[$caseIdx]['description'], $book->description, "Unexpected book description");
 	}
+
+    /**
+     * Asserts that the attribute of a two Book objects match
+	 * @param Book $book1 first book to test
+	 * @param Book $book2 second book to test
+     */	 
+	protected function assertBooks($book1, $book2)
+	{
+		$this->assertEquals($book1->id,               $book2->id,          "Unexpected book id");
+		$this->assertEquals($book1->title,            $book2->title,       "Unexpected book title");
+		$this->assertEquals($book1->author,           $book2->author,      "Unexpected book author");
+		$this->assertEquals($book1->description,      $book2->description, "Unexpected book description");
+	}
+
 }
 ?>

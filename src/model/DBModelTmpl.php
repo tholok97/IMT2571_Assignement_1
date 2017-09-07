@@ -44,13 +44,19 @@ class DBModel implements IModel
     {
 		$booklist = array();
         
+        // tries to run query to fetch books
+        $queryResult = null;
         try {
             $queryResult = $this->db->query('SELECT * FROM book ORDER BY id');
         } catch (PDOException $ex) {
             throw $ex;
         }
 
+        // if we got a result back, process it. if not, throw
         if ($queryResult) {
+    
+            // for each row in the result, make a Book out of it and add it
+            // to $booklist
             foreach ($queryResult as $row) {
                 array_push($booklist, new Book($row['title'], $row['author'], 
                         $row['description'], $row['id']));
@@ -70,21 +76,25 @@ class DBModel implements IModel
     public function getBookById($id)
     {
 
+        // if $id isn't a number, throw
         if (!is_numeric($id)) {
             throw new Exception("invalid id");
         }
 
+        // try to fetch row from database
+        $row = null;
         try {
             $row = $this->db->query('SELECT * FROM book WHERE id=' . $id)->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $ex) {
             throw $ex;
         }
 
+        // return null if none found. make new Book if was found
         if ($row == null) {
             return null;
         } else {
-            return new Book($row['title'], 
-                    $row['author'],
+            return new Book($row['title'],      // make new Book out of 
+                    $row['author'],             // row and return
                     $row['description'],
                     $row['id']);
         }
@@ -96,29 +106,31 @@ class DBModel implements IModel
      */
     public function addBook($book) 
     {
-
+        // if invalid input, throw
         if ($book->title == "" || $book->author == "") {
-            throw new Exception("missing title or author");
+            throw new Exception("missing title or/and author");
         }
 
+        // convert empty description to null
         $bookDescription = $book->description;
         if ($bookDescription == "") {
             $bookDescription = null;
         }
 
-        // TODO alternative solution to this (without reference): make unit 
-        //  test pick out book from the model instead of from the .....
+        // build insertion-query from $book
         $stmt = $this->db->prepare("INSERT INTO book VALUES (null, :title, :author, :description)");
         $stmt->bindValue(':title', $book->title);
         $stmt->bindValue(':author', $book->author);
         $stmt->bindValue(':description', $bookDescription);
 
+        // try to run the query
         try {
             $stmt->execute();
         } catch (PDOException $ex) {
             throw $ex;
         }
 
+        // update the $book object with it's id in the DB
         $book->id = $this->db->lastInsertId();
     }
 
@@ -128,21 +140,30 @@ class DBModel implements IModel
      */
     public function modifyBook($book)
     {
+        // if invalid input: throw
         if ($book->title == "" || $book->author == "") {
             throw new Exception("missing title or author");
         }
 
+        // convert empty description to null
         $bookDescription = $book->description;
         if ($bookDescription == "") {
             $bookDescription = null;
         }
         
+        // prepare statement with information from $book
         $stmt = $this->db->prepare('UPDATE book SET title=:title, author=:author, description=:description WHERE id=:id');
         $stmt->bindValue(':title', $book->title);
         $stmt->bindValue(':author', $book->author);
         $stmt->bindValue(':description', $bookDescription);
         $stmt->bindValue(':id', $book->id);
-        $stmt->execute();
+
+        // try to run the query
+        try {
+            $stmt->execute();
+        } catch (PDOException $ex) {
+            throw $ex;
+        }
     }
 
     /** Deletes data related to a book from the collection.
@@ -150,7 +171,8 @@ class DBModel implements IModel
      */
     public function deleteBook($id)
     {
-        $affected_rows = $this->db->exec("DELETE FROM book WHERE id=$id");
+        // delete the book. (we trust the $id)
+        $this->db->exec("DELETE FROM book WHERE id=$id");
     }
 	
 }

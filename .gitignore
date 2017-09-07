@@ -28,3 +28,10 @@ tags
 
 # Directory
 bin/
+
+# assignement 1 stuff
+
+tests/vendor/
+tests/composer.json
+tests/composer.lock
+tests/TestDBProps.php
