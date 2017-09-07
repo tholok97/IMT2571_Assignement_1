@@ -124,6 +124,30 @@ class FunctionalTests extends \PHPUnit\Framework\TestCase
 					    'description' => '<script document.body.style.visibility="hidden" />',
 						self::OUTCOME_IDX => self::OUTCOME_SUCCESS
 					);
+		// Case where value contains less than character - may break HTML code
+		$cases[3] = array
+		            (
+					    'title' => 'test title',
+					    'author' => '',
+					    'description' => 'description of invalid test book',
+						self::OUTCOME_IDX => self::OUTCOME_FAILURE
+					);
+		// Case where value contains less than character - may break HTML code
+		$cases[4] = array
+		            (
+					    'title' => '',
+					    'author' => 'test author',
+					    'description' => 'description of invalid test book',
+						self::OUTCOME_IDX => self::OUTCOME_FAILURE
+					);
+		// Case where value contains less than character - may break HTML code
+		$cases[5] = array
+		            (
+					    'title' => '',
+					    'author' => '',
+					    'description' => 'description of invalid test book',
+						self::OUTCOME_IDX => self::OUTCOME_FAILURE
+					);
 		return $cases;
 	}
 	
@@ -397,7 +421,10 @@ class FunctionalTests extends \PHPUnit\Framework\TestCase
 			else
 			{
 				// Verifying that error page is returned
-				
+				$testBookId = -1;
+				$this->addBook($testBookId, $testCase['title'], $testCase['author'], $testCase['description'], self::OUTCOME_FAILURE);
+                $page = $this->session->getPage();
+                $this->assertTrue($this->isExpectedPage($page, self::ERROR_PAGE_TITLE_IDX), 'Error: expected error page');
 			}
 		}
 	}
@@ -450,7 +477,9 @@ class FunctionalTests extends \PHPUnit\Framework\TestCase
 			else
 			{
 				// Verifying that error page is returned
-				
+				$this->modifyBook($testBookId, $testCase['title'], $testCase['author'], $testCase['description']);
+                $page = $this->session->getPage();
+                $this->assertTrue($this->isExpectedPage($page, self::ERROR_PAGE_TITLE_IDX), 'Error: expected error page');
 			}
 		}
     }

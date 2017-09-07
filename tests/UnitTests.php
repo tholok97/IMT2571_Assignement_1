@@ -84,7 +84,26 @@ class UnitTests extends TestCase
 						      'author' => '<script document.body.style.visibility="hidden" />',
                               'description' => '<script document.body.style.visibility="hidden" />',
 							  self::OUTCOME_IDX => self::OUTCOME_SUCCESS
-                       )
+                       ),
+                        // Extra cases
+				       array ('id' => null, 
+					          'title' => '',
+						      'author' => 'Test author',
+                              'description' => 'Test description',
+							  self::OUTCOME_IDX => self::OUTCOME_FAILURE
+                       ),						
+				       array ('id' => null, 
+					          'title' => "Test title with ' inside",
+						      'author' => "",
+                              'description' => "Test description with ' inside",
+							  self::OUTCOME_IDX => self::OUTCOME_FAILURE
+                       ),						
+				       array ('id' => null, 
+					          'title' => '',
+						      'author' => '',
+                              'description' => '<script document.body.style.visibility="hidden" />',
+							  self::OUTCOME_IDX => self::OUTCOME_FAILURE
+                       ),
                     );					   
 
     /**
@@ -176,6 +195,19 @@ class UnitTests extends TestCase
 			else
 			{
 				//TODO: Add tests for unsuccessful cases
+				$book = $this->generateTestBook($i);
+                
+                $exception = null;
+                try {
+				    $model->addBook($book);
+                } catch (Exception $ex) {
+                    $ecception = $ex; 
+                }
+
+		        $dbSizePost = $this->getConnection()->getRowCount('book');
+
+                $this->assertNotNull($exception, 'exception not thrown with invalid book (addBook)');
+                $this->assertEquals($dbSize, $dbSizePost, 'size of table changed when deletion failed!! (bad)');
 			}
 		}
 	}
@@ -216,7 +248,22 @@ class UnitTests extends TestCase
 			}
 			else
 			{
-				//TODO: Add tests for unsuccessful cases
+
+                //TODO TODO TODO TODO TODO TODO TODO TODO TODO sjekk om db
+                // ble modifisert
+				//$book = $this->generateTestBook($i);
+
+                $exception = null;
+                try {
+				    $model->modifyBook($book);
+                } catch (Exception $ex) {
+                    $exception = $ex;
+                }
+
+                $this->assertNotNull($exception, 'exception not thrown with invalid book (modifyBook)');
+
+                // Verify that data was correctly changed
+				//$this->assertBookData($i, $model->getBookById(self::$TEST_CASES[$i]['id']));
 			}
 		}
 	}

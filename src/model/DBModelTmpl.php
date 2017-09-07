@@ -45,7 +45,7 @@ class DBModel implements IModel
 		$booklist = array();
         
         try {
-            $queryResult = $this->db->query('SELECT * FROM book');
+            $queryResult = $this->db->query('SELECT * FROM book ORDER BY id');
         } catch (PDOException $ex) {
             throw $ex;
         }
@@ -56,7 +56,7 @@ class DBModel implements IModel
                         $row['description'], $row['id']));
             }
         } else {
-            throw new PDOException("Couldn't get books from database (getBookList");
+            throw new Exception("Couldn't get books from database (getBookList");
         }
 
         return $booklist;
@@ -65,10 +65,15 @@ class DBModel implements IModel
     /** Function retrieving information about a given book in the collection.
      * @param integer $id the id of the book to be retrieved
      * @return Book|null The book matching the $id exists in the collection; null otherwise.
-	 * @throws PDOException
+	 * @throws PDOException, Exception
      */
     public function getBookById($id)
     {
+
+        if (!is_numeric($id)) {
+            throw new Exception("invalid id");
+        }
+
         try {
             $row = $this->db->query('SELECT * FROM book WHERE id=' . $id)->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $ex) {
